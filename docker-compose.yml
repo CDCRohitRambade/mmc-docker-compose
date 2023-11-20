@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  database:
+    container_name: postgreSQLContainer
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}  # Define PostgreSQL username
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Define PostgreSQL password
+      POSTGRES_DB: ${POSTGRES_DB}  # Define PostgreSQL default database
+    ports:
+      - "5432:5432"  # Map container port to host
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d  # Mount initialization scripts
+      - postgres-volume:/var/lib/postgresql/data  # Mount volume for data persistence
+    networks:
+      - mmc-network  # Connect to the Mentor-Mentees-Connect-Network
+
+  # pgAdmin4 Service
+  pgAdmin4:
+    image: dpage/pgadmin4
+    container_name: pgadmin4-dashboard
+    restart: always
+    volumes:
+      - pgadmin-volume:/var/lib/pgadmin  # Mount volume for pgAdmin data
+    ports:
+      - "5433:80"  # Map container port to host
+    networks:
+      - mmc-network  # Connect to the Mentor-Mentees-Connect-Network
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}  # Set default pgAdmin email
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}  # Set default pgAdmin password
+    depends_on:
+      - database  # Ensure pgAdmin4 starts after the database service
+
+volumes:
+  postgres-volume:
+    name: postgres-volume  # Define volume for PostgreSQL data
+  pgadmin-volume:
+    name: pgadmin-volume  # Define volume for pgAdmin data
+
+networks: # Custom network for service communication
+  mmc-network:
+    name: Mentor-Mentees-Connect-Network  
+    driver: bridge  
